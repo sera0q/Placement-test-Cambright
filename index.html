@@ -1,63 +1,85 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import "tailwindcss/tailwind.css";
 
-export default function ExamScreen() {
-    const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 minutes
-    const [warningShown, setWarningShown] = useState(false);
-    const [isBlurred, setIsBlurred] = useState(false);
+export default function SecureExam() {
+    const [examStarted, setExamStarted] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(3000); // 50 minutes
 
     useEffect(() => {
-        // Block right-click
-        const blockRightClick = (e) => e.preventDefault();
-        document.addEventListener("contextmenu", blockRightClick);
-        
-        // Block keyboard shortcuts (Ctrl, Shift, Print Screen, etc.)
+        if (examStarted) {
+            const timer = setInterval(() => {
+                setTimeLeft((prevTime) => {
+                    if (prevTime <= 1) {
+                        clearInterval(timer);
+                        autoSubmit();
+                        return 0;
+                    }
+                    return prevTime - 1;
+                });
+            }, 1000);
+
+            return () => clearInterval(timer);
+        }
+    }, [examStarted]);
+
+    useEffect(() => {
         const blockKeys = (e) => {
-            if (e.key === "PrintScreen" || e.ctrlKey || e.shiftKey) {
-                setIsBlurred(true);
+            if (["PrintScreen", "F12", "Escape"].includes(e.key) || (e.ctrlKey && ["c", "u", "v", "x", "s"].includes(e.key))) {
                 e.preventDefault();
+                alert("🚫 Screenshots and copying are not allowed!");
+                document.body.classList.add("blur-sm");
+                setTimeout(() => document.body.classList.remove("blur-sm"), 3000);
             }
         };
-        document.addEventListener("keydown", blockKeys);
 
-        // Disable opening the exam more than once per device
-        const hasAttempted = localStorage.getItem("examAttempted");
-        if (hasAttempted) {
-            alert("You have already taken this exam and cannot access it again.");
-            window.location.href = "https://www.google.com"; // Redirect away
+        const blockContextMenu = (e) => {
+            e.preventDefault();
+        };
+
+        if (examStarted) {
+            document.addEventListener("keydown", blockKeys);
+            document.addEventListener("contextmenu", blockContextMenu);
+        } else {
+            document.removeEventListener("keydown", blockKeys);
+            document.removeEventListener("contextmenu", blockContextMenu);
         }
 
         return () => {
-            document.removeEventListener("contextmenu", blockRightClick);
             document.removeEventListener("keydown", blockKeys);
+            document.removeEventListener("contextmenu", blockContextMenu);
         };
-    }, []);
+    }, [examStarted]);
 
-    useEffect(() => {
-        if (timeLeft > 0) {
-            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-            if (timeLeft === 600 && !warningShown) {
-                alert("You have 10 minutes remaining. Please complete the writing section before time runs out.");
-                setWarningShown(true);
-            }
-            return () => clearTimeout(timer);
-        } else {
-            alert("Time is up! Your exam has been submitted automatically.");
-            localStorage.setItem("examAttempted", "true");
-            window.location.href = "https://www.google.com"; // Redirect to a submission page
-        }
-    }, [timeLeft]);
+    const autoSubmit = () => {
+        alert("Time is up! Your exam is being submitted automatically.");
+        // Add logic to auto-submit form (if applicable)
+    };
 
     return (
-        <div className={`h-screen flex flex-col items-center justify-center bg-gray-900 text-white ${isBlurred ? "blur-lg" : ""}`}>
-            <h1 className="text-3xl font-bold mb-4">English Placement Test</h1>
-            <p className="mb-6">Our English Placement Test is designed to assess your current proficiency level and help us recommend the most suitable learning program for you.</p>
-            <p className="text-xl font-bold">Time Left: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}</p>
-            <button 
-                className="mt-4 px-6 py-2 bg-blue-500 text-white text-lg rounded-lg hover:bg-blue-700"
-                onClick={() => alert("Exam started. Do not try to take screenshots or switch windows!")}
-            >
-                Start Exam
-            </button>
+        <div className="flex items-center justify-center h-screen bg-gray-100">
+            {!examStarted ? (
+                <div className="text-center bg-white p-8 rounded-lg shadow-lg">
+                    <img src="/Cambright.Lan.png" alt="Exam Banner" className="mx-auto mb-4 w-64" />
+                    <h1 className="text-xl font-bold mb-2">Welcome to the Secure English Placement Test</h1>
+                    <p className="mb-4">Our test assesses your proficiency level and recommends the best learning program for you.</p>
+                    <button
+                        onClick={() => setExamStarted(true)}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                    >
+                        Start Exam
+                    </button>
+                </div>
+            ) : (
+                <div className="w-full max-w-4xl">
+                    <h1 className="text-2xl font-bold text-center text-red-600">Secure Exam</h1>
+                    <p className="text-center text-lg font-semibold mt-2">Time Left: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}</p>
+                    <iframe
+                        src="https://docs.google.com/forms/d/e/1FAIpQLSfpBaiBgM_dhm93cIwG9kWKZFSx7E8XM2UxRkb3GOo939GRjA/viewform?usp=header"
+                        className="w-full h-[500px] border-none mt-4"
+                        allowFullScreen
+                    ></iframe>
+                </div>
+            )}
         </div>
     );
 }
