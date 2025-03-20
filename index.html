@@ -8,7 +8,26 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            user-select: none; /* Disable text selection */
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #banner {
+            width: 100%;
+            height: auto;
+        }
+        #welcome {
+            font-size: 18px;
+            padding: 15px;
         }
         iframe {
             width: 100%;
@@ -28,15 +47,29 @@
 </head>
 <body oncontextmenu="return false;" onkeydown="return blockKeys(event)">
 
-    <h1>Secure Exam</h1>
-    <p id="timer">Time Left: <span id="countdown">50:00</span></p>
+    <div class="container">
+        <img id="banner" src="Cambright.Lan.png" alt="Cambright International Language Centre">
+        <h1>Welcome to the English Placement Test</h1>
+        <p id="welcome">Our English Placement Test is designed to assess your current proficiency level and help us recommend the most suitable learning program for you.</p>
+        <button onclick="startExam()">Start Exam</button>
+    </div>
 
-    <iframe id="examFrame" src="https://docs.google.com/forms/d/e/1FAIpQLSfpBaiBgM_dhm93cIwG9kWKZFSx7E8XM2UxRkb3GOo939GRjA/viewform?usp=header" allowfullscreen></iframe>
+    <div class="container" id="examSection" style="display: none;">
+        <h1>Secure Exam</h1>
+        <p id="timer">Time Left: <span id="countdown">50:00</span></p>
+        <iframe id="examFrame" src="https://docs.google.com/forms/d/e/1FAIpQLSfpBaiBgM_dhm93cIwG9kWKZFSx7E8XM2UxRkb3GOo939GRjA/viewform?usp=header" allowfullscreen></iframe>
+    </div>
 
     <script>
         let timeLeft = 3000; // 50 minutes in seconds
         const countdownElement = document.getElementById('countdown');
         const iframe = document.getElementById('examFrame');
+
+        function startExam() {
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('examSection').style.display = 'block';
+            timerInterval = setInterval(updateTimer, 1000);
+        }
 
         function updateTimer() {
             let minutes = Math.floor(timeLeft / 60);
@@ -54,7 +87,7 @@
             timeLeft--;
         }
 
-        let timerInterval = setInterval(updateTimer, 1000);
+        let timerInterval;
 
         function autoSubmitForm() {
             alert("Time is up! Your answers are being submitted automatically.");
@@ -70,7 +103,6 @@
             }
         }
 
-        // Block Screenshot & Copying
         function blockKeys(event) {
             let forbiddenKeys = ["PrintScreen", "F12", "Control", "Shift", "Meta", "Windows", "Escape"];
             if (forbiddenKeys.includes(event.key) || (event.ctrlKey && (event.key === 'u' || event.key === 'c' || event.key === 'v' || event.key === 'x' || event.key === 's'))) {
@@ -89,7 +121,6 @@
             }
         });
 
-        // Detect Snipping Tool
         setInterval(() => {
             if (window.outerWidth - window.innerWidth > 100 || window.outerHeight - window.innerHeight > 100) {
                 document.body.classList.add("blurred");
@@ -98,14 +129,11 @@
             }
         }, 1000);
 
-        // Warn if user leaves the page
         document.addEventListener("visibilitychange", function() {
             if (document.hidden) {
                 alert("⚠️ Warning: You switched tabs. Stay on this page to avoid penalties.");
             }
         });
-
     </script>
-
 </body>
 </html>
