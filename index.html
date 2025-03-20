@@ -3,36 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Exam</title>
+    <title>Secure Exam - Cambright</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            background-color: #f4f4f4;
             user-select: none;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
         }
         .container {
-            width: 100%;
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .welcome-screen {
             background: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
-        #banner {
-            width: 100%;
-            height: auto;
-        }
-        #welcome {
+        .start-button {
+            background: #007bff;
+            color: white;
+            padding: 15px 30px;
             font-size: 18px;
-            padding: 15px;
-        }
-        iframe {
-            width: 100%;
-            height: 500px;
             border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .start-button:hover {
+            background: #0056b3;
+        }
+        #exam-container {
+            display: none;
         }
         #timer {
             font-size: 20px;
@@ -43,31 +51,36 @@
         .blurred {
             filter: blur(8px);
         }
+        img {
+            width: 80%;
+            max-width: 500px;
+        }
     </style>
 </head>
 <body oncontextmenu="return false;" onkeydown="return blockKeys(event)">
-
     <div class="container">
-        <img id="banner" src="Cambright.Lan.png" alt="Cambright International Language Centre">
-        <h1>Welcome to the English Placement Test</h1>
-        <p id="welcome">Our English Placement Test is designed to assess your current proficiency level and help us recommend the most suitable learning program for you.</p>
-        <button onclick="startExam()">Start Exam</button>
-    </div>
-
-    <div class="container" id="examSection" style="display: none;">
-        <h1>Secure Exam</h1>
-        <p id="timer">Time Left: <span id="countdown">50:00</span></p>
-        <iframe id="examFrame" src="https://docs.google.com/forms/d/e/1FAIpQLSfpBaiBgM_dhm93cIwG9kWKZFSx7E8XM2UxRkb3GOo939GRjA/viewform?usp=header" allowfullscreen></iframe>
+        <div class="welcome-screen" id="welcome">
+            <img src="Cambright.Lan.png" alt="Cambright Logo">
+            <h1>Welcome to the English Placement Test</h1>
+            <p>Our English Placement Test is designed to assess your current proficiency level and help us recommend the most suitable learning program for you.</p>
+            <button class="start-button" onclick="startExam()">Start Exam</button>
+        </div>
+        <div id="exam-container">
+            <h1>Secure Exam</h1>
+            <p id="timer">Time Left: <span id="countdown">50:00</span></p>
+            <iframe id="examFrame" src="https://docs.google.com/forms/d/e/1FAIpQLSfpBaiBgM_dhm93cIwG9kWKZFSx7E8XM2UxRkb3GOo939GRjA/viewform?usp=header" allowfullscreen></iframe>
+        </div>
     </div>
 
     <script>
         let timeLeft = 3000; // 50 minutes in seconds
+        let timerInterval;
         const countdownElement = document.getElementById('countdown');
         const iframe = document.getElementById('examFrame');
 
         function startExam() {
-            document.querySelector('.container').style.display = 'none';
-            document.getElementById('examSection').style.display = 'block';
+            document.getElementById('welcome').style.display = 'none';
+            document.getElementById('exam-container').style.display = 'block';
             timerInterval = setInterval(updateTimer, 1000);
         }
 
@@ -77,7 +90,7 @@
             countdownElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
             
             if (timeLeft === 600) {
-                alert("⚠️ Reminder: 10 minutes left! Make sure to complete the written question.");
+                alert("You have 10 minutes remaining. Please complete the writing section before time is up, as it is very important.");
             }
 
             if (timeLeft <= 0) {
@@ -86,8 +99,6 @@
             }
             timeLeft--;
         }
-
-        let timerInterval;
 
         function autoSubmitForm() {
             alert("Time is up! Your answers are being submitted automatically.");
@@ -105,8 +116,8 @@
 
         function blockKeys(event) {
             let forbiddenKeys = ["PrintScreen", "F12", "Control", "Shift", "Meta", "Windows", "Escape"];
-            if (forbiddenKeys.includes(event.key) || (event.ctrlKey && (event.key === 'u' || event.key === 'c' || event.key === 'v' || event.key === 'x' || event.key === 's'))) {
-                alert("Action blocked! You cannot take screenshots or copy content.");
+            if (forbiddenKeys.includes(event.key) || (event.ctrlKey && ["u", "c", "v", "x", "s"].includes(event.key.toLowerCase()))) {
+                alert("Screenshots are not allowed! Action blocked.");
                 event.preventDefault();
                 return false;
             }
