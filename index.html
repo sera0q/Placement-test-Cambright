@@ -8,20 +8,11 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            user-select: none; /* Disable text selection */
+            user-select: none;
             background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
         }
         iframe {
-            width: 90%;
+            width: 100%;
             height: 500px;
             border: none;
         }
@@ -34,45 +25,61 @@
         .blurred {
             filter: blur(8px);
         }
+        .welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
         .start-btn {
             padding: 15px 30px;
             font-size: 18px;
             background-color: #007BFF;
             color: white;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
-            transition: 0.3s;
+            border-radius: 5px;
+            margin-top: 20px;
         }
         .start-btn:hover {
             background-color: #0056b3;
         }
+        .banner {
+            width: 80%;
+            max-width: 600px;
+        }
     </style>
 </head>
-<body oncontextmenu="return false;" onkeydown="return blockKeys(event)">
-    <div id="welcomeScreen" class="container">
-        <img src="Cambright.Lan.png" alt="Cambright Logo" width="300">
-        <h1>Welcome to the English Placement Test</h1>
+<body oncontextmenu="return false;" onkeydown="return blockKeys(event)" onmousedown="return blockRightClick(event)">
+
+    <div class="welcome-screen" id="welcome">
+        <img src="Cambright.Lan.png" alt="Cambright Logo" class="banner">
+        <h2>Welcome to the English Placement Test</h2>
         <p>Our English Placement Test is designed to assess your current proficiency level and help us recommend the most suitable learning program for you.</p>
         <button class="start-btn" onclick="startExam()">Start Exam</button>
     </div>
-    
-    <div id="examScreen" class="container" style="display: none;">
+
+    <div id="examContainer" style="display: none;">
         <h1>Secure Exam</h1>
         <p id="timer">Time Left: <span id="countdown">50:00</span></p>
         <iframe id="examFrame" src="https://docs.google.com/forms/d/e/1FAIpQLSfpBaiBgM_dhm93cIwG9kWKZFSx7E8XM2UxRkb3GOo939GRjA/viewform?usp=header" allowfullscreen></iframe>
     </div>
-    
+
     <script>
         let timeLeft = 3000; // 50 minutes in seconds
         const countdownElement = document.getElementById('countdown');
-        const examScreen = document.getElementById('examScreen');
-        const welcomeScreen = document.getElementById('welcomeScreen');
         const iframe = document.getElementById('examFrame');
 
         function startExam() {
-            welcomeScreen.style.display = 'none';
-            examScreen.style.display = 'flex';
+            document.getElementById('welcome').style.display = 'none';
+            document.getElementById('examContainer').style.display = 'block';
             let timerInterval = setInterval(updateTimer, 1000);
         }
 
@@ -82,9 +89,9 @@
             countdownElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
             
             if (timeLeft === 600) {
-                alert("⚠️ You have 10 minutes remaining! Please complete the writing section before time is up as it is very important.");
+                alert("⚠️ You have 10 minutes remaining. Please complete the writing section before time is up, as it is very important.");
             }
-            
+
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 autoSubmitForm();
@@ -109,10 +116,16 @@
         function blockKeys(event) {
             let forbiddenKeys = ["PrintScreen", "F12", "Control", "Shift", "Meta", "Windows", "Escape"];
             if (forbiddenKeys.includes(event.key) || (event.ctrlKey && (event.key === 'u' || event.key === 'c' || event.key === 'v' || event.key === 'x' || event.key === 's'))) {
-                alert("🚫 Action blocked! You cannot take screenshots, copy content, or inspect the page.");
+                alert("⚠️ Action blocked! You cannot take screenshots or copy content.");
                 event.preventDefault();
                 return false;
             }
+        }
+
+        function blockRightClick(event) {
+            alert("⚠️ Right-click is disabled for security reasons.");
+            event.preventDefault();
+            return false;
         }
 
         document.addEventListener("keydown", function (e) {
@@ -127,7 +140,7 @@
         setInterval(() => {
             if (window.outerWidth - window.innerWidth > 100 || window.outerHeight - window.innerHeight > 100) {
                 document.body.classList.add("blurred");
-                alert("🚨 Screen capture detected! Content is now blurred.");
+                alert("Screen capture detected! Content is now blurred.");
                 setTimeout(() => document.body.classList.remove("blurred"), 3000);
             }
         }, 1000);
