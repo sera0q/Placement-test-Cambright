@@ -1,85 +1,139 @@
-import React, { useState, useEffect } from "react";
-import "tailwindcss/tailwind.css";
-
-export default function SecureExam() {
-    const [examStarted, setExamStarted] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(3000); // 50 minutes
-
-    useEffect(() => {
-        if (examStarted) {
-            const timer = setInterval(() => {
-                setTimeLeft((prevTime) => {
-                    if (prevTime <= 1) {
-                        clearInterval(timer);
-                        autoSubmit();
-                        return 0;
-                    }
-                    return prevTime - 1;
-                });
-            }, 1000);
-
-            return () => clearInterval(timer);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Exam</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
         }
-    }, [examStarted]);
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #banner {
+            width: 100%;
+            height: auto;
+        }
+        #welcome {
+            font-size: 18px;
+            padding: 15px;
+        }
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+        #timer {
+            font-size: 20px;
+            font-weight: bold;
+            color: red;
+            margin: 10px;
+        }
+        .blurred {
+            filter: blur(8px);
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;" onkeydown="return blockKeys(event)">
 
-    useEffect(() => {
-        const blockKeys = (e) => {
-            if (["PrintScreen", "F12", "Escape"].includes(e.key) || (e.ctrlKey && ["c", "u", "v", "x", "s"].includes(e.key))) {
-                e.preventDefault();
-                alert("🚫 Screenshots and copying are not allowed!");
-                document.body.classList.add("blur-sm");
-                setTimeout(() => document.body.classList.remove("blur-sm"), 3000);
+    <div class="container">
+        <img id="banner" src="Cambright.Lan.png" alt="Cambright International Language Centre">
+        <h1>Welcome to the English Placement Test</h1>
+        <p id="welcome">Our English Placement Test is designed to assess your current proficiency level and help us recommend the most suitable learning program for you.</p>
+        <button onclick="startExam()">Start Exam</button>
+    </div>
+
+    <div class="container" id="examSection" style="display: none;">
+        <h1>Secure Exam</h1>
+        <p id="timer">Time Left: <span id="countdown">50:00</span></p>
+        <iframe id="examFrame" src="https://docs.google.com/forms/d/e/1FAIpQLSfpBaiBgM_dhm93cIwG9kWKZFSx7E8XM2UxRkb3GOo939GRjA/viewform?usp=header" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        let timeLeft = 3000; // 50 minutes in seconds
+        const countdownElement = document.getElementById('countdown');
+        const iframe = document.getElementById('examFrame');
+
+        function startExam() {
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('examSection').style.display = 'block';
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            countdownElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            
+            if (timeLeft === 600) {
+                alert("⚠️ Reminder: 10 minutes left! Make sure to complete the written question.");
             }
-        };
 
-        const blockContextMenu = (e) => {
-            e.preventDefault();
-        };
-
-        if (examStarted) {
-            document.addEventListener("keydown", blockKeys);
-            document.addEventListener("contextmenu", blockContextMenu);
-        } else {
-            document.removeEventListener("keydown", blockKeys);
-            document.removeEventListener("contextmenu", blockContextMenu);
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                autoSubmitForm();
+            }
+            timeLeft--;
         }
 
-        return () => {
-            document.removeEventListener("keydown", blockKeys);
-            document.removeEventListener("contextmenu", blockContextMenu);
-        };
-    }, [examStarted]);
+        let timerInterval;
 
-    const autoSubmit = () => {
-        alert("Time is up! Your exam is being submitted automatically.");
-        // Add logic to auto-submit form (if applicable)
-    };
+        function autoSubmitForm() {
+            alert("Time is up! Your answers are being submitted automatically.");
+            try {
+                let submitButton = iframe.contentWindow.document.querySelector("[type=submit]");
+                if (submitButton) {
+                    submitButton.click();
+                } else {
+                    alert("Error: Could not auto-submit. Please submit manually.");
+                }
+            } catch (e) {
+                alert("Error: Auto-submit blocked by Google. Please submit manually.");
+            }
+        }
 
-    return (
-        <div className="flex items-center justify-center h-screen bg-gray-100">
-            {!examStarted ? (
-                <div className="text-center bg-white p-8 rounded-lg shadow-lg">
-                    <img src="/Cambright.Lan.png" alt="Exam Banner" className="mx-auto mb-4 w-64" />
-                    <h1 className="text-xl font-bold mb-2">Welcome to the Secure English Placement Test</h1>
-                    <p className="mb-4">Our test assesses your proficiency level and recommends the best learning program for you.</p>
-                    <button
-                        onClick={() => setExamStarted(true)}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-                    >
-                        Start Exam
-                    </button>
-                </div>
-            ) : (
-                <div className="w-full max-w-4xl">
-                    <h1 className="text-2xl font-bold text-center text-red-600">Secure Exam</h1>
-                    <p className="text-center text-lg font-semibold mt-2">Time Left: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}</p>
-                    <iframe
-                        src="https://docs.google.com/forms/d/e/1FAIpQLSfpBaiBgM_dhm93cIwG9kWKZFSx7E8XM2UxRkb3GOo939GRjA/viewform?usp=header"
-                        className="w-full h-[500px] border-none mt-4"
-                        allowFullScreen
-                    ></iframe>
-                </div>
-            )}
-        </div>
-    );
-}
+        function blockKeys(event) {
+            let forbiddenKeys = ["PrintScreen", "F12", "Control", "Shift", "Meta", "Windows", "Escape"];
+            if (forbiddenKeys.includes(event.key) || (event.ctrlKey && (event.key === 'u' || event.key === 'c' || event.key === 'v' || event.key === 'x' || event.key === 's'))) {
+                alert("Action blocked! You cannot take screenshots or copy content.");
+                event.preventDefault();
+                return false;
+            }
+        }
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "PrintScreen" || (e.ctrlKey && e.shiftKey && e.key === "S")) {
+                alert("Screenshots are not allowed!");
+                document.body.classList.add("blurred");
+                setTimeout(() => document.body.classList.remove("blurred"), 3000);
+                e.preventDefault();
+            }
+        });
+
+        setInterval(() => {
+            if (window.outerWidth - window.innerWidth > 100 || window.outerHeight - window.innerHeight > 100) {
+                document.body.classList.add("blurred");
+                alert("Screen capture detected! Content is now blurred.");
+                setTimeout(() => document.body.classList.remove("blurred"), 3000);
+            }
+        }, 1000);
+
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                alert("⚠️ Warning: You switched tabs. Stay on this page to avoid penalties.");
+            }
+        });
+    </script>
+</body>
+</html>
