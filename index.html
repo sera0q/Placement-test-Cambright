@@ -9,9 +9,19 @@
             font-family: Arial, sans-serif;
             text-align: center;
             user-select: none; /* Disable text selection */
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
         iframe {
-            width: 100%;
+            width: 90%;
             height: 500px;
             border: none;
         }
@@ -24,61 +34,46 @@
         .blurred {
             filter: blur(8px);
         }
-        .hidden {
-            display: none;
-        }
-        .welcome-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            z-index: 1000;
-        }
-        button {
+        .start-btn {
+            padding: 15px 30px;
             font-size: 18px;
-            padding: 10px 20px;
-            background: #007BFF;
+            background-color: #007BFF;
             color: white;
             border: none;
-            cursor: pointer;
             border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
         }
-        button:hover {
-            background: #0056b3;
+        .start-btn:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body oncontextmenu="return false;" onkeydown="return blockKeys(event)">
-
-    <div class="welcome-screen" id="welcomeScreen">
-        <img src="Cambright.Lan.png" alt="Cambright Language Centre" width="300">
-        <h1>Welcome to the Secure Exam</h1>
+    <div id="welcomeScreen" class="container">
+        <img src="Cambright.Lan.png" alt="Cambright Logo" width="300">
+        <h1>Welcome to the English Placement Test</h1>
         <p>Our English Placement Test is designed to assess your current proficiency level and help us recommend the most suitable learning program for you.</p>
-        <button onclick="startExam()">Start Exam</button>
+        <button class="start-btn" onclick="startExam()">Start Exam</button>
     </div>
-
-    <h1>Secure Exam</h1>
-    <p id="timer">Time Left: <span id="countdown">50:00</span></p>
-
-    <iframe id="examFrame" class="hidden" src="https://docs.google.com/forms/d/e/1FAIpQLSfpBaiBgM_dhm93cIwG9kWKZFSx7E8XM2UxRkb3GOo939GRjA/viewform?usp=header" allowfullscreen></iframe>
-
+    
+    <div id="examScreen" class="container" style="display: none;">
+        <h1>Secure Exam</h1>
+        <p id="timer">Time Left: <span id="countdown">50:00</span></p>
+        <iframe id="examFrame" src="https://docs.google.com/forms/d/e/1FAIpQLSfpBaiBgM_dhm93cIwG9kWKZFSx7E8XM2UxRkb3GOo939GRjA/viewform?usp=header" allowfullscreen></iframe>
+    </div>
+    
     <script>
         let timeLeft = 3000; // 50 minutes in seconds
         const countdownElement = document.getElementById('countdown');
-        const iframe = document.getElementById('examFrame');
+        const examScreen = document.getElementById('examScreen');
         const welcomeScreen = document.getElementById('welcomeScreen');
+        const iframe = document.getElementById('examFrame');
 
         function startExam() {
             welcomeScreen.style.display = 'none';
-            iframe.classList.remove('hidden');
-            timerInterval = setInterval(updateTimer, 1000);
+            examScreen.style.display = 'flex';
+            let timerInterval = setInterval(updateTimer, 1000);
         }
 
         function updateTimer() {
@@ -87,17 +82,15 @@
             countdownElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
             
             if (timeLeft === 600) {
-                alert("⏳ You have 10 minutes remaining. Please complete the writing section before time is up, as it is very important.");
+                alert("⚠️ You have 10 minutes remaining! Please complete the writing section before time is up as it is very important.");
             }
-
+            
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 autoSubmitForm();
             }
             timeLeft--;
         }
-
-        let timerInterval;
 
         function autoSubmitForm() {
             alert("Time is up! Your answers are being submitted automatically.");
@@ -113,11 +106,10 @@
             }
         }
 
-        // Block Right Click and Copying
         function blockKeys(event) {
             let forbiddenKeys = ["PrintScreen", "F12", "Control", "Shift", "Meta", "Windows", "Escape"];
-            if (forbiddenKeys.includes(event.key) || event.ctrlKey) {
-                alert("🚫 Action blocked! Right-clicking, copying, and certain keys are not allowed.");
+            if (forbiddenKeys.includes(event.key) || (event.ctrlKey && (event.key === 'u' || event.key === 'c' || event.key === 'v' || event.key === 'x' || event.key === 's'))) {
+                alert("🚫 Action blocked! You cannot take screenshots, copy content, or inspect the page.");
                 event.preventDefault();
                 return false;
             }
@@ -125,14 +117,13 @@
 
         document.addEventListener("keydown", function (e) {
             if (e.key === "PrintScreen" || (e.ctrlKey && e.shiftKey && e.key === "S")) {
-                alert("🚫 Screenshots are not allowed!");
+                alert("Screenshots are not allowed!");
                 document.body.classList.add("blurred");
                 setTimeout(() => document.body.classList.remove("blurred"), 3000);
                 e.preventDefault();
             }
         });
 
-        // Detect Snipping Tool
         setInterval(() => {
             if (window.outerWidth - window.innerWidth > 100 || window.outerHeight - window.innerHeight > 100) {
                 document.body.classList.add("blurred");
@@ -141,13 +132,11 @@
             }
         }, 1000);
 
-        // Warn if user leaves the page
         document.addEventListener("visibilitychange", function() {
             if (document.hidden) {
                 alert("⚠️ Warning: You switched tabs. Stay on this page to avoid penalties.");
             }
         });
     </script>
-
 </body>
 </html>
